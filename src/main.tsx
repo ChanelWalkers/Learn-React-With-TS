@@ -10,12 +10,17 @@ import AboutPage from 'pages/client/about.tsx';
 import LoginPage from 'pages/client/auth/login.tsx';
 import RegisterPage from 'pages/client/auth/register.tsx';
 import 'styles/global.scss'
+import HomePage from './pages/client/home';
 
 const router = createBrowserRouter([
   {
     path: "/",
     element: <Layout />,
     children: [
+      {
+        index: true,
+        element: <HomePage/>
+      },
       {
         path: "/book",
         element: <BookPage />
