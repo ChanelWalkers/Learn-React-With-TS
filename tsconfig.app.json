@@ -26,6 +26,12 @@
       "styles/*": [
         "./src/styles/*"
       ],
+      "services/*": [
+        "./src/services/*"
+      ],
+      "types/*": [
+        "./src/types/*"
+      ],
     },
     /* Bundler mode */
     "moduleResolution": "bundler",
