@@ -1,37 +1,66 @@
 import axios from "axios";
+import { refreshTokenAPI } from "./api";
+import { Mutex } from "async-mutex";
 
-const instance = axios.create({
-    baseURL: `${import.meta.env.VITE_BACKEND_URL}`,
-    withCredentials: true,
-});
+const mutex = new Mutex();
 
-// Add a request interceptor
-instance.interceptors.request.use(function (config) {
-    // Do something before request is sent
-    const token = localStorage.getItem('access_token');
-    const auth = token ? `Bearer ${token}` : '';
-    config.headers['Authorization'] = auth;
+const createInstanceAxios = (baseURL: string) => {
 
-    return config;
-}, function (error) {
-    // Do something with request error
-    return Promise.reject(error);
-});
+    const instance = axios.create({
+        baseURL: baseURL,
+        withCredentials: true,
+    });
 
-// Add a response interceptor
-instance.interceptors.response.use(function (response) {
-    // Any status code that lie within the range of 2xx cause this function to trigger
-    // Do something with response data
-    if (response && response.data) {
-        return response.data;
+    const handleRefreshToken = async () => {
+        return await mutex.runExclusive(async () => {
+            const res = await refreshTokenAPI();
+            if (res && res.data) {
+                return res.data.access_token;
+            } else {
+                return null;
+            }
+        })
     }
-}, function (error) {
-    // Any status codes that falls outside the range of 2xx cause this function to trigger
-    // Do something with response error
-    if (error && error.response && error.response.data) {
-        return error.response.data;
-    }
-    return Promise.reject(error);
-});
 
-export default instance;
+    // Add a request interceptor
+    instance.interceptors.request.use(function (config) {
+        // Do something before request is sent
+        const token = localStorage.getItem('access_token');
+        const auth = token ? `Bearer ${token}` : '';
+        config.headers['Authorization'] = auth;
+
+        return config;
+    }, function (error) {
+        // Do something with request error
+        return Promise.reject(error);
+    });
+
+    // Add a response interceptor
+    instance.interceptors.response.use(function (response) {
+        // Any status code that lie within the range of 2xx cause this function to trigger
+        // Do something with response data
+        if (response && response.data) {
+            return response.data;
+        }
+    }, async function (error) {
+        if (error.config && error.response && +error.response.status === 401) {
+            const access_token = await handleRefreshToken();
+            if (access_token) {
+                error.config.headers['Authorization'] = `Bearer ${access_token}`;
+                localStorage.setItem('access_token', access_token);
+                return instance.request(error.config);
+            }
+        }
+
+        // Any status codes that falls outside the range of 2xx cause this function to trigger
+        // Do something with response error
+        if (error && error.response && error.response.data) {
+            return error.response.data;
+        }
+        return Promise.reject(error);
+    });
+
+    return instance;
+}
+
+export default createInstanceAxios;

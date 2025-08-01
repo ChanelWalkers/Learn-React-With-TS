@@ -101,4 +101,88 @@ declare global {
         updatedAt: Date;
         _id: string;
     }
+
+    interface ICreateBook {
+        __v?: number;
+        createdAt?: Date;
+        updatedAt?: Date;
+        _id?: string;
+        thumbnail: unknown;
+        slider: unknown;
+        mainText: string;
+        author: string;
+        price: number;
+        quantity: number;
+        category: string;
+    }
+
+    interface IUpdateBook {
+        acknowledged: boolean;
+        modifiedCount: number;
+        upsertedId: number | null;
+        upsertedCount: number;
+        matchedCount: number;
+    }
+
+    interface IDeleteBook extends IDeleteUser {
+
+    }
+
+    interface ICart {
+        _id: string | undefined;
+        quantity: number;
+        detail: IBook | null;
+    }
+
+    interface ICreateOrder {
+        name: string;
+        address: string;
+        phone: string;
+        totalPrice: number;
+        type: string;
+        detail: {
+            bookName: string,
+            quantity: number,
+            _id: string,
+        }[];
+        paymentRef?: string;
+    }
+
+    interface IHistory extends ICreateOrder {
+        userId: string;
+        email: string;
+        paymentStatus: string;
+        paymentRef: string;
+        __v: number;
+        createdAt: Date;
+        updatedAt: Date;
+    }
+
+    interface IChangePassword {
+        email: string;
+        oldpass: string;
+        newpass: string;
+    }
+
+    interface IUpdateInfor {
+        _id: string;
+        fullName: string;
+        phone: string;
+        avatar: string;
+    }
+
+    interface IStatistic {
+        countUser: number;
+        countOrder: number;
+        countBook: number;
+    }
+
+    interface IOrder {
+        _id: string;
+        name: string;
+        address: string;
+        totalPrice: number;
+        createdAt: Date;
+    }
+
 }

@@ -20,6 +20,10 @@ import ManageBookPage from 'pages/admin/manage.book';
 import ManageOrderPage from 'pages/admin/manage.order';
 import ManageUserPage from 'pages/admin/manage.user';
 import LayoutAdmin from 'components/layout/layout.admin';
+import OrderPage from './pages/client/order';
+import OrderHistory from './components/client/order/history';
+import ReturnURLPage from './components/client/order/return.url';
+import { GoogleOAuthProvider } from '@react-oauth/google';
 
 const router = createBrowserRouter([
   {
@@ -31,12 +35,36 @@ const router = createBrowserRouter([
         element: <HomePage />
       },
       {
-        path: "/book",
+        path: "/book/:id",
         element: <BookPage />,
+      },
+      {
+        path: "/order",
+        element: (
+          <ProtectedRoute>
+            <OrderPage />
+          </ProtectedRoute>
+        )
       },
       {
         path: "/about",
         element: <AboutPage />,
+      },
+      {
+        path: "/history",
+        element: (
+          <ProtectedRoute>
+            <OrderHistory />
+          </ProtectedRoute>
+        )
+      },
+      {
+        path: "vnpay/return-url",
+        element: (
+          <ProtectedRoute>
+            <ReturnURLPage />
+          </ProtectedRoute>
+        )
       },
       {
         path: "/checkout",
@@ -76,6 +104,7 @@ const router = createBrowserRouter([
           </ProtectedRoute>
         )
       },
+
       {
         path: "user",
         element: (
@@ -108,12 +137,15 @@ const router = createBrowserRouter([
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
+
     <App>
-      <AppProvider>
-        <ConfigProvider locale={enUS}>
-          <RouterProvider router={router} />
-        </ConfigProvider>
-      </AppProvider>
+      <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
+        <AppProvider>
+          <ConfigProvider locale={enUS}>
+            <RouterProvider router={router} />
+          </ConfigProvider>
+        </AppProvider>
+      </GoogleOAuthProvider>
     </App>
   </StrictMode>,
 )

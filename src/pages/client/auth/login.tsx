@@ -1,8 +1,11 @@
 import { useCurrentApp } from '@/components/context/app.context';
-import { loginAPI } from '@/services/api';
+import { loginAPI, loginWithGoogleAPI } from '@/services/api';
+import { GooglePlusOutlined } from '@ant-design/icons';
 import { App, Button, Divider, Form, FormProps, Input } from 'antd';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useGoogleLogin } from '@react-oauth/google';
+import axios from 'axios';
 
 interface FieldType {
     username: string;
@@ -38,6 +41,37 @@ const LoginPage = () => {
         setIsSubmit(false);
     }
 
+    const loginGoogle = useGoogleLogin({
+        onSuccess: async (tokenResponse) => {
+            console.log(tokenResponse)
+
+            const { data } = await axios(
+                "https://www.googleapis.com/oauth2/v3/userinfo",
+                {
+                    headers: {
+                        Authorization: `Bearer ${tokenResponse?.access_token}`,
+                    },
+                }
+            );
+            if (data && data.email) {
+                //call backend create user
+                const res = await loginWithGoogleAPI("GOOGLE", data.email);
+                if (res?.data) {
+                    setIsAuthenticated(true);
+                    setUser(res.data.user);
+                    localStorage.setItem('access_token', res.data.access_token);
+                    navigate('/');
+                } else {
+                    notification.error({
+                        message: "Login Error",
+                        description: res.message && Array.isArray(res.message) ? res.message[0] : res.message,
+                        duration: 5,
+                    })
+                }
+            }
+
+        },
+    });
 
     return (
         <div className="register-page">
@@ -81,6 +115,20 @@ const LoginPage = () => {
                                 </Button>
                             </Form.Item>
                             <Divider>Or</Divider>
+                            <div title='Login with Google'
+                                onClick={() => loginGoogle()}
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    textAlign: 'center',
+                                    justifyContent: 'center',
+                                    gap: 10,
+                                    marginBottom: 25,
+                                    cursor: 'pointer'
+                                }}>
+                                Login with
+                                <GooglePlusOutlined style={{ fontSize: 30, color: 'orange' }} />
+                            </div>
                             <p className="text text-normal" style={{ textAlign: "center" }}>
                                 Don't have any account?
                                 <span>
